@@ -1,0 +1,43 @@
+services:
+  app:
+    container_name: mspedidosapp
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    environment:
+      SPRING_DATA_MONGODB_HOST: mongodb
+      SPRING_DATA_MONGODB_PORT: 27017
+      SPRING_DATA_MONGODB_USERNAME: admin
+      SPRING_DATA_MONGODB_PASSWORD: admin
+    networks:
+      - msapp-network
+  mongodb:
+    image: 'mongodb/mongodb-community-server:latest'
+    container_name: mspedidosdb
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+      MONGO_INITDB_DATABASE: mspedidosdb
+    volumes:
+      - 'mspedidosdb-data:/data/db'
+    networks:
+      - msapp-network
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  mspedidosdb-data:
+
+networks:
+  msapp-network:
